@@ -1,27 +1,40 @@
-// server.js
 const express = require('express');
-const mysqlConnection = require('./db'); // Assuming db.js is in the same directory
+const cors = require('cors'); // Import cors middleware
 const app = express();
+const port = 5000;
 
-// Middleware
-app.use(express.json());
+const mysql = require('mysql');
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'taskify'
+});
 
-// Test MySQL connection
-mysqlConnection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-  if (error) {
-    console.error('Error connecting to MySQL database:', error);
-  } else {
-    console.log('Connected to MySQL database');
-    console.log('MySQL Server version is: ', results[0].solution);
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL database:', err);
+    return;
   }
+  console.log('Connected to MySQL database...');
 });
 
-// Routes
+app.use(cors({
+  origin: 'http://localhost:5173'
+}));
+
 app.get('/api/data', (req, res) => {
-  // Handle database operations here
-  res.json({ message: 'Data from MySQL' });
+  const query = 'SELECT * FROM users';
+  connection.query(query, (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching data from MySQL:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

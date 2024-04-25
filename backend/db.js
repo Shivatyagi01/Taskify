@@ -1,18 +1,30 @@
 const mysql = require('mysql');
 
-const connection = mysql.createConnection({
+const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
   database: 'taskify'
 });
 
-connection.connect(error => {
-  if (error) {
-    console.error('Error connecting to MySQL database:', error);
-  } else {
-    console.log('Connected to MySQL database');
+db.connect((err) => {
+  if (err) {
+    throw err;
   }
+  console.log('MySQL Connected...');
 });
 
-module.exports = connection;
+const fetchData = () => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM users';
+    db.query(sql, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+module.exports = { fetchData };
